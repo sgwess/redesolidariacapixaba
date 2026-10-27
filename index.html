@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rede Solidária | Coletivo Socialista Capixaba</title>
+
+    <!-- Meta SEO & Identidade -->
+    <meta name="description"
+        content="Plataforma oficial de solidariedade econômica e apoio mútuo aos trabalhadores, autônomos e empresas de esquerda do Espírito Santo. Nenhum companheiro fica desamparado.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#c8102e">
+
+    <!-- Open Graph / Redes Sociais -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Rede Solidária | Coletivo Socialista Capixaba">
+    <meta property="og:description"
+        content="Compre de quem apoia a nossa classe. Encontre empresas, serviços autônomos e vagas de emprego solidárias no Espírito Santo.">
+    <meta property="og:image" content="Logo.svg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Estilos do Design System CSC -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Camada de Gradientes e Ambiente -->
+    <div class="bg-gradient-layer"></div>
+
+    <!-- Topbar Superior com Status e Atalho Seguro -->
+    <aside class="top-bar">
+        <div class="container top-bar-content">
+            <div class="top-bar-badge">
+                <span class="pulse-dot"></span>
+                <span><strong>Rede Ativa</strong> • Solidariedade e Resistência Popular no Espírito Santo</span>
+            </div>
+            <div class="top-bar-actions">
+                <a href="#catalogo" class="top-link"><i class="fas fa-compass"></i> Explorar Catálogo</a>
+                <a href="gestao-segura-csc.html" class="top-link top-link-admin" rel="nofollow" title="Acesso Restrito à Coordenação">
+                    <i class="fas fa-shield-halved"></i> Painel de Gestão
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Navegação Principal -->
+    <header class="main-nav">
+        <div class="container nav-content">
+            <a href="/" class="logo-area" title="Coletivo Socialista Capixaba">
+                <img src="Logo.svg" alt="Coletivo Socialista Capixaba" class="logo-img">
+                <div class="brand-title">
+                    <span class="brand-name">REDE <span>SOLIDÁRIA</span></span>
+                    <span class="brand-subtitle">Coletivo Socialista Capixaba</span>
+                </div>
+            </a>
+
+            <div class="nav-cta-area">
+                <button class="btn btn-outline-red btn-sm" id="openSuggestBtn">
+                    <i class="fas fa-bullhorn"></i> Indicar Iniciativa
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-badge">
+                <i class="fas fa-handshake-angle"></i> Apoio Mútuo & Solidariedade de Classe
+            </div>
+            <h1 class="hero-title">
+                NENHUM COMPANHEIRO FICA <span>DESAMPARADO</span>
+            </h1>
+            <p class="hero-desc">
+                Durante e após as eleições, muitos trabalhadores, autônomos e empreendedores sofreram perseguições, boicotes e demissões por se posicionarem ao lado da classe trabalhadora. 
+                Esta rede nasceu para conectar nosso campo: <strong>compre de empresas solidárias, contrate autônomos companheiros e ajude a divulgar oportunidades de emprego</strong> no Espírito Santo.
+            </p>
+
+            <!-- Estatísticas do Movimento -->
+            <div class="hero-stats">
+                <div class="stat-pill">
+                    <div class="stat-icon"><i class="fas fa-store"></i></div>
+                    <div class="stat-data">
+                        <div class="stat-num" id="statEmpresas">-</div>
+                        <div class="stat-label">Empresas</div>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                    <div class="stat-data">
+                        <div class="stat-num" id="statAutonomos">-</div>
+                        <div class="stat-label">Autônomos</div>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-data">
+                        <div class="stat-num" id="statVagas">-</div>
+                        <div class="stat-label">Vagas Abertas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button class="btn btn-primary" id="heroSuggestBtn">
+                    <i class="fas fa-plus-circle"></i> Cadastrar Minha Empresa ou Serviço
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Filtros & Busca Fixa -->
+    <section class="filter-section" id="catalogo">
+        <div class="container">
+            <!-- Abas por Tipo -->
+            <div class="type-tabs" role="tablist">
+                <button class="type-tab active" data-type="todos">
+                    <i class="fas fa-border-all"></i> Todos <span class="type-tab-count" data-tab-count="todos">-</span>
+                </button>
+                <button class="type-tab" data-type="empresa">
+                    <i class="fas fa-store"></i> Empresas Solidárias <span class="type-tab-count" data-tab-count="empresa">-</span>
+                </button>
+                <button class="type-tab" data-type="autonomo">
+                    <i class="fas fa-user-tie"></i> Autônomos Aliados <span class="type-tab-count" data-tab-count="autonomo">-</span>
+                </button>
+                <button class="type-tab" data-type="vaga">
+                    <i class="fas fa-briefcase"></i> Vagas de Emprego <span class="type-tab-count" data-tab-count="vaga">-</span>
+                </button>
+            </div>
+
+            <!-- Controles de Busca e Filtros -->
+            <div class="filter-controls">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nome, profissão, serviço, bairro ou benefício...">
+                    <button id="searchClear" class="search-clear" title="Limpar busca"><i class="fas fa-xmark"></i></button>
+                </div>
+
+                <div>
+                    <select id="citySelect" class="select-filter" title="Filtrar por Cidade">
+                        <option value="todas">Todas as Cidades (ES)</option>
+                        <option value="Vitória">Vitória</option>
+                        <option value="Vila Velha">Vila Velha</option>
+                        <option value="Serra">Serra</option>
+                        <option value="Cariacica">Cariacica</option>
+                        <option value="Viana">Viana</option>
+                        <option value="Guarapari">Guarapari</option>
+                        <option value="Linhares">Linhares</option>
+                        <option value="Colatina">Colatina</option>
+                        <option value="Cachoeiro">Cachoeiro de Itapemirim</option>
+                        <option value="São Mateus">São Mateus</option>
+                        <option value="Remoto">100% Remoto / Online</option>
+                    </select>
+                </div>
+
+                <div>
+                    <select id="categorySelect" class="select-filter" title="Filtrar por Categoria">
+                        <option value="todas">Todas as Categorias</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button id="resetFilterBtn" class="filter-reset-btn" title="Restaurar todos os filtros">
+                        <i class="fas fa-rotate-left"></i> Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Área Principal de Cards -->
+    <main class="container">
+        <div class="results-header">
+            <div class="results-count" id="resultsCount">Carregando iniciativas solidárias...</div>
+        </div>
+
+        <div class="cards-grid" id="cardsGrid">
+            <!-- Cards gerados dinamicamente via app.js -->
+        </div>
+    </main>
+
+    <!-- Modal do Google Maps Interativo -->
+    <div class="modal-backdrop" id="mapsModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="maps-modal-box">
+            <div class="modal-header">
+                <div class="modal-header-title">
+                    <i class="fas fa-location-dot"></i>
+                    <div class="modal-title-text">
+                        <h3 id="modalTitle">Localização</h3>
+                        <p id="modalSubtitle">Endereço no Espírito Santo</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="modalCloseBtn" title="Fechar Mapa">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-map-frame-wrap">
+                <iframe id="modalMapIframe" src="about:blank" title="Mapa de Localização" loading="lazy" allowfullscreen></iframe>
+            </div>
+
+            <div class="modal-footer">
+                <div class="modal-address-info">
+                    <i class="fas fa-map-pin"></i>
+                    <span id="modalAddress">Carregando...</span>
+                </div>
+                <div class="modal-footer-actions">
+                    <button class="btn btn-secondary btn-sm" id="modalCopyAddressBtn" title="Copiar endereço">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" id="modalWazeBtn" title="Navegar no Waze">
+                        <i class="fab fa-waze"></i> Waze
+                    </a>
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" id="modalRouteBtn" title="Abrir no Google Maps">
+                        <i class="fas fa-directions"></i> Como Chegar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Indicação / Sugestão Pública Moderada -->
+    <div class="modal-backdrop" id="suggestModal" role="dialog" aria-modal="true">
+        <div class="suggest-modal-box">
+            <div class="modal-header">
+                <div class="modal-header-title">
+                    <i class="fas fa-bullhorn"></i>
+                    <div class="modal-title-text">
+                        <h3>Indicar Empresa, Autônomo ou Vaga</h3>
+                        <p>Envie as informações para triagem e validação da coordenação</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="suggestCloseBtn" title="Fechar formulário">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="suggestForm" class="suggest-form">
+                <!-- Honeypot anti-bot invisível -->
+                <input type="text" name="website_hp" class="honey-trap" tabindex="-1" autocomplete="off">
+                <input type="hidden" name="_renderTime" value="">
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="suggestTipo">Tipo de Indicação <span>*</span></label>
+                        <select name="tipo" id="suggestTipo" class="form-select" required>
+                            <option value="empresa">Empresa Solidária / Comércio</option>
+                            <option value="autonomo">Profissional Autônomo(a)</option>
+                            <option value="vaga">Vaga de Emprego</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="suggestCategoria">Categoria / Setor <span>*</span></label>
+                        <input type="text" name="categoria" id="suggestCategoria" required class="form-input" placeholder="Ex: Gastronomia, Saúde, Elétrica, TI">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="suggestNome">Nome / Título <span>*</span></label>
+                    <input type="text" name="nome" id="suggestNome" required class="form-input" placeholder="Nome da empresa, do profissional ou cargo da vaga">
+                </div>
+
+                <div id="suggestExtraFields">
+                    <!-- Preenchido dinamicamente pelo JS -->
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="suggestCidade">Cidade (ES) <span>*</span></label>
+                        <select name="cidade" id="suggestCidade" class="form-select" required>
+                            <option value="Vitória">Vitória</option>
+                            <option value="Vila Velha">Vila Velha</option>
+                            <option value="Serra">Serra</option>
+                            <option value="Cariacica">Cariacica</option>
+                            <option value="Viana">Viana</option>
+                            <option value="Guarapari">Guarapari</option>
+                            <option value="Linhares">Linhares</option>
+                            <option value="Colatina">Colatina</option>
+                            <option value="Cachoeiro de Itapemirim">Cachoeiro de Itapemirim</option>
+                            <option value="Outra Cidade do ES">Outra Cidade do ES</option>
+                            <option value="100% Remoto">100% Remoto</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="suggestBairro">Bairro</label>
+                        <input type="text" name="bairro" id="suggestBairro" class="form-input" placeholder="Ex: Centro, Itapuã, Laranjeiras">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="suggestEndereco">Endereço Completo (para visualização no Maps)</label>
+                    <input type="text" name="endereco" id="suggestEndereco" class="form-input" placeholder="Ex: Rua Graciano Neves, 142 - Centro, Vitória - ES">
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="suggestWhatsapp">WhatsApp de Contato (DDD + Número)</label>
+                        <input type="tel" name="whatsapp" id="suggestWhatsapp" class="form-input" placeholder="Ex: 27999887766">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="suggestInstagram">Instagram (@usuario)</label>
+                        <input type="text" name="instagram" id="suggestInstagram" class="form-input" placeholder="Ex: @empresa.csc">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="suggestDescricao">Descrição dos Serviços / Atuação</label>
+                    <textarea name="descricao" id="suggestDescricao" class="form-textarea" placeholder="Descreva os produtos, serviços, história ou diferenciais da vaga..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="suggestLogoUrl">Link do Logo / Foto (opcional)</label>
+                    <input type="url" name="logoUrl" id="suggestLogoUrl" class="form-input" placeholder="https://exemplo.com/logo.jpg">
+                </div>
+
+                <div style="background: rgba(200, 16, 46, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); border-radius: 8px; padding: 0.8rem; font-size: 0.8rem; color: #fca5a5;">
+                    <i class="fas fa-shield-halved"></i> <strong>Aviso de Segurança:</strong> Para proteger a integridade de todas as pessoas cadastradas, toda indicação pública passa por conferência manual e sigilosa da nossa coordenação antes de ser publicada.
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+                    <i class="fas fa-paper-plane"></i> Enviar Indicação para Moderação
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rodapé Oficial -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="Logo.svg" alt="Coletivo Socialista Capixaba" class="footer-logo">
+                    <div class="brand-title">
+                        <span class="brand-name">REDE <span>SOLIDÁRIA</span></span>
+                        <span class="brand-subtitle">Coletivo Socialista Capixaba</span>
+                    </div>
+                </div>
+                <p class="footer-desc">
+                    Espaço de articulação e fortalecimento mútuo da classe trabalhadora capixaba. Apoie quem constrói um Espírito Santo justo, democrático e socialista.
+                </p>
+            </div>
+
+            <div class="footer-copy">
+                <div>&copy; 2026 Coletivo Socialista Capixaba • Todos os direitos da classe trabalhadora reservados.</div>
+                <div>Ambiente Blindado & Solidário</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toastMsg" class="toast-msg">
+        <i class="fas fa-circle-check" style="color: #22c55e;"></i>
+        <span id="toastText">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- Scripts: Seed Data (Fallback) + App Logic -->
+    <script src="data/seed-data.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

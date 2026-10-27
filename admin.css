@@ -1,0 +1,557 @@
+/* =========================================================
+   ESTILOS - PAINEL DE GESTÃO E CADASTRO SEGURO (CSC)
+   Coletivo Socialista Capixaba
+   ========================================================= */
+
+:root {
+    --bg-dark: #090a0d;
+    --bg-darker: #030406;
+    --bg-card: #121318;
+    --bg-card-hover: #171922;
+    --bg-card-elevated: #1a1c26;
+    
+    --primary-red: #c8102e;
+    --primary-red-bright: #e01a22;
+    --primary-red-glow: rgba(224, 26, 34, 0.35);
+    --primary-red-dim: rgba(200, 16, 46, 0.12);
+
+    --text-white: #ffffff;
+    --text-light: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-dim: #6b7280;
+
+    --border-color: #232530;
+    --border-red: #c8102e;
+
+    --font-heading: 'Bebas Neue', 'Anton', Impact, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Space Grotesk', monospace;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 22px;
+    --radius-full: 9999px;
+
+    --transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: radial-gradient(ellipse 130% 90% at 50% 0%, #171926 0%, #0d0f15 35%, #07080b 70%, #030406 100%) no-repeat fixed;
+    background-color: var(--bg-darker);
+    color: var(--text-light);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.container-admin {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem 1.25rem;
+}
+
+/* =========================================================
+   TELA DE LOGIN SEGURO
+   ========================================================= */
+.auth-wrapper {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.auth-card {
+    background: #121319;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 480px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(200, 16, 46, 0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-red-bright) 0%, #8b0a1a 100%);
+}
+
+.auth-logo {
+    height: 48px;
+    width: auto;
+    margin-bottom: 1.25rem;
+}
+
+.auth-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(200, 16, 46, 0.15);
+    border: 1px solid rgba(224, 26, 34, 0.35);
+    color: #fca5a5;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-full);
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+}
+
+.auth-title {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    color: var(--text-white);
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+}
+.auth-title span {
+    color: var(--primary-red-bright);
+}
+
+.auth-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    text-align: left;
+}
+
+.input-icon-wrap {
+    position: relative;
+}
+.input-icon-wrap i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+}
+.input-icon-wrap input {
+    padding-left: 2.75rem;
+}
+
+.auth-footer-notice {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #1c1d28;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    line-height: 1.45;
+}
+
+/* =========================================================
+   DASHBOARD ADMINISTRATIVO
+   ========================================================= */
+.admin-navbar {
+    background: #0f1016;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+.admin-nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.admin-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.admin-logo {
+    height: 34px;
+    width: auto;
+}
+.admin-title-badge {
+    background: rgba(200, 16, 46, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.admin-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Stats Cards */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.admin-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.admin-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: var(--primary-red-dim);
+    color: var(--primary-red-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+}
+.admin-stat-info h4 {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-white);
+    line-height: 1;
+}
+.admin-stat-info p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Painel de Formulário (Cadastro / Edição) */
+.form-card-admin {
+    background: #121319;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.8);
+    position: relative;
+}
+.form-card-admin.editing {
+    border-color: var(--gold-accent, #f59e0b);
+    box-shadow: 0 0 35px rgba(245, 158, 11, 0.2);
+}
+
+.form-header-admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #1c1d28;
+    margin-bottom: 1.5rem;
+}
+.form-title-group h2 {
+    font-family: var(--font-heading);
+    font-size: 1.85rem;
+    color: var(--text-white);
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+}
+.form-title-group p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Seletor de Tipo de Cadastro */
+.type-selector-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: #090a0f;
+    padding: 0.35rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.75rem;
+}
+.type-selector-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.type-selector-tab.active {
+    background: var(--primary-red);
+    color: var(--text-white);
+    box-shadow: 0 4px 15px rgba(200, 16, 46, 0.4);
+}
+
+/* Componente de Upload e Preview de Logo */
+.upload-container {
+    background: #151620;
+    border: 2px dashed #2c2f42;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: var(--transition);
+    margin-bottom: 1.25rem;
+}
+.upload-container.dragover {
+    border-color: var(--primary-red-bright);
+    background: rgba(200, 16, 46, 0.08);
+}
+.upload-preview-box {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-md);
+    background: #0d0e14;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.upload-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.upload-preview-empty {
+    font-size: 1.75rem;
+    color: var(--text-dim);
+}
+.upload-controls {
+    flex: 1;
+}
+.upload-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 0.25rem;
+}
+.upload-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+.upload-btns-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Preview do Google Maps no Formulário */
+.maps-preview-box {
+    background: #0c0d12;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-top: 0.75rem;
+    height: 240px;
+    position: relative;
+    display: none;
+}
+.maps-preview-box.active {
+    display: block;
+}
+.maps-preview-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Categorias Sugeridas Rápidas */
+.category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+.cat-chip {
+    background: #171822;
+    border: 1px solid #282a3a;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.cat-chip:hover {
+    color: var(--text-white);
+    border-color: var(--primary-red-bright);
+    background: rgba(200, 16, 46, 0.15);
+}
+
+/* Lista / Tabela de Cadastros Existentes */
+.admin-list-section {
+    background: #121319;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+}
+
+.list-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #1c1d28;
+}
+.list-filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+}
+.list-filter-tab {
+    background: #171822;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.list-filter-tab.active {
+    background: var(--primary-red);
+    color: var(--text-white);
+    border-color: var(--primary-red-bright);
+}
+
+/* Tabela de Itens */
+.admin-table-wrap {
+    overflow-x: auto;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    text-align: left;
+}
+.admin-table th {
+    background: #161822;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+}
+.admin-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #1a1c26;
+    vertical-align: middle;
+}
+.admin-table tr:hover td {
+    background: #161824;
+}
+
+.table-logo-cell {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: #1c1d28;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.table-logo-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+.btn-action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    background: #161822;
+    color: var(--text-light);
+    transition: var(--transition);
+}
+.btn-action-icon:hover {
+    background: #232532;
+    color: var(--text-white);
+}
+.btn-action-delete:hover {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: #ef4444;
+    color: #f87171;
+}
+.btn-action-approve:hover {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #22c55e;
+    color: #4ade80;
+}
+
+/* Badges de Status */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+}
+.status-badge-active {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+.status-badge-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}

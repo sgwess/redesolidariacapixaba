@@ -1,0 +1,21 @@
+# REDE SOLIDÁRIA - COLETIVO SOCIALISTA CAPIXABA
+# Configuração de Bloqueio de Robôs de Busca
+
+User-agent: *
+# Permite a indexação da vitrine pública para divulgar os trabalhadores e empresas de esquerda
+Allow: /
+Allow: /index.html
+Allow: /style.css
+Allow: /app.js
+Allow: /Logo.svg
+Allow: /Symbol.svg
+
+# BLOQUEIO ESTRITO: Páginas e APIs de Gestão e Cadastro Administrativo
+Disallow: /gestao-segura-csc.html
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /admin.css
+Disallow: /admin.js
+Disallow: /api/admin-auth
+Disallow: /api/admin-items
+Disallow: /google-apps-script.js

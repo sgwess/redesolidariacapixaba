@@ -1,0 +1,17 @@
+{
+  "name": "rede-solidaria-csc",
+  "version": "1.0.0",
+  "description": "Rede Solidária do Coletivo Socialista Capixaba - Cadastro e vitrine segura de empresas, autônomos e vagas de esquerda no ES.",
+  "scripts": {
+    "start": "npx -y serve . -p 3000",
+    "dev": "vercel dev"
+  },
+  "keywords": [
+    "coletivo-socialista-capixaba",
+    "rede-solidaria",
+    "economia-solidaria",
+    "espirito-santo"
+  ],
+  "author": "Coletivo Socialista Capixaba",
+  "license": "MIT"
+}
