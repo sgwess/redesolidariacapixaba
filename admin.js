@@ -29,6 +29,8 @@
     // Top Admin Nav
     adminLogoutBtn: document.getElementById('adminLogoutBtn'),
     refreshListBtn: document.getElementById('refreshListBtn'),
+    btnToggleNovoCadastro: document.getElementById('btnToggleNovoCadastro'),
+    btnCloseForm: document.getElementById('btnCloseForm'),
 
     // Stats
     statAdminTotal: document.getElementById('statAdminTotal'),
@@ -524,7 +526,7 @@
       const resData = await resp.json();
       if (resp.ok && resData.success) {
         alertMsg(resData.message || 'Cadastro salvo com sucesso!');
-        resetFormToNew();
+        closeForm();
         loadAdminItems();
       } else {
         alertMsg(resData.error || 'Erro ao salvar informações.');
@@ -543,11 +545,50 @@
         state.items.unshift(payload);
       }
       alertMsg('Salvo localmente com sucesso!');
-      resetFormToNew();
+      closeForm();
       renderAdminDashboard();
     } finally {
       dom.submitFormBtn.disabled = false;
       dom.submitFormBtn.innerHTML = '<i class="fas fa-floppy-disk"></i> Publicar / Salvar Cadastro';
+    }
+  }
+
+  // Controles de Abertura e Fechamento do Formulário (Colapsável)
+  function openForm(isEdit = false) {
+    if (!dom.formCard) return;
+    dom.formCard.style.display = 'block';
+    if (dom.btnToggleNovoCadastro) {
+      dom.btnToggleNovoCadastro.innerHTML = isEdit 
+        ? '<i class="fas fa-xmark"></i> Fechar Edição' 
+        : '<i class="fas fa-xmark"></i> Fechar Formulário';
+      dom.btnToggleNovoCadastro.classList.remove('btn-primary');
+      dom.btnToggleNovoCadastro.classList.add('btn-secondary');
+    }
+  }
+
+  function closeForm() {
+    if (!dom.formCard) return;
+    dom.formCard.style.display = 'none';
+    if (dom.btnToggleNovoCadastro) {
+      dom.btnToggleNovoCadastro.innerHTML = '<i class="fas fa-plus-circle"></i> Novo Cadastro';
+      dom.btnToggleNovoCadastro.classList.remove('btn-secondary');
+      dom.btnToggleNovoCadastro.classList.add('btn-primary');
+    }
+    state.editingItemId = null;
+    dom.itemForm.reset();
+    setLogoPreview('');
+    dom.mapsPreviewBox.classList.remove('active');
+    dom.mapsPreviewIframe.src = 'about:blank';
+    dom.formCard.classList.remove('editing');
+  }
+
+  function toggleNovoCadastro() {
+    if (dom.formCard.style.display === 'none' || !dom.formCard.style.display) {
+      resetFormToNew();
+      openForm(false);
+      dom.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      closeForm();
     }
   }
 
@@ -588,7 +629,8 @@
     // Campos dinâmicos
     renderDynamicFormFields(item.tipo, item);
 
-    // Ajusta UI do card de formulário
+    // Ajusta UI do card de formulário e abre
+    openForm(true);
     dom.formCard.classList.add('editing');
     dom.formTitle.innerHTML = `<i class="fas fa-pen-to-square" style="color: #f59e0b;"></i> EDITANDO: <span>${escapeHTML(item.nome || item.titulo)}</span>`;
     dom.formSubtitle.textContent = 'Altere as informações abaixo e clique em Salvar Alterações.';
@@ -730,11 +772,13 @@
       });
     }
 
+    // Alternar / Fechar Formulário (Colapsável)
+    if (dom.btnToggleNovoCadastro) dom.btnToggleNovoCadastro.addEventListener('click', toggleNovoCadastro);
+    if (dom.btnCloseForm) dom.btnCloseForm.addEventListener('click', closeForm);
+    if (dom.cancelEditBtn) dom.cancelEditBtn.addEventListener('click', closeForm);
+
     // Submissão do Formulário
     if (dom.itemForm) dom.itemForm.addEventListener('submit', handleSubmitItem);
-
-    // Cancelar Edição
-    if (dom.cancelEditBtn) dom.cancelEditBtn.addEventListener('click', resetFormToNew);
 
     // Filtros da Tabela
     dom.listFilterTabs.forEach(tab => {

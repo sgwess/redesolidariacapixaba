@@ -127,16 +127,34 @@
                 </div>
             </div>
 
-            <!-- Formulário de Cadastro e Edição -->
-            <section class="form-card-admin" id="formCardAdmin">
+            <!-- Barra de Ações Rápidas (Acesso direto à lista com botão para abrir novo cadastro) -->
+            <div class="admin-action-bar">
+                <div class="action-bar-left">
+                    <h2 class="section-title"><i class="fas fa-list-check"></i> Painel de Cadastros</h2>
+                    <p class="section-subtitle">Visualize, filtre, edite e gerencie as iniciativas solidárias abaixo</p>
+                </div>
+                <div class="action-bar-right">
+                    <button type="button" class="btn btn-primary" id="btnToggleNovoCadastro">
+                        <i class="fas fa-plus-circle"></i> Novo Cadastro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formulário de Cadastro e Edição (COLAPSÁVEL - Oculto por padrão para destacar a lista existente) -->
+            <section class="form-card-admin" id="formCardAdmin" style="display: none;">
                 <div class="form-header-admin">
                     <div class="form-title-group">
                         <h2 id="formTitle"><i class="fas fa-plus-circle" style="color: var(--primary-red-bright);"></i> NOVO <span>CADASTRO</span></h2>
                         <p id="formSubtitle">Adicione uma nova empresa, autônomo ou vaga de emprego na Rede Solidária.</p>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm" id="cancelEditBtn" style="display: none;">
-                        <i class="fas fa-xmark"></i> Cancelar Edição
-                    </button>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="cancelEditBtn" style="display: none;">
+                            <i class="fas fa-xmark"></i> Cancelar Edição
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseForm" title="Fechar formulário">
+                            <i class="fas fa-chevron-up"></i> Recolher
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Seletor de Tipo -->

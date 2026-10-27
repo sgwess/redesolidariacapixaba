@@ -247,19 +247,62 @@ body {
     letter-spacing: 0.05em;
 }
 
+/* Barra de Ações Rápidas do Dashboard */
+.admin-action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.75rem;
+    background: #141622;
+    border: 1px solid #282a3c;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.action-bar-left .section-title {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    color: var(--text-white);
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    line-height: 1.1;
+}
+.action-bar-left .section-title i {
+    color: var(--primary-red-bright);
+}
+.action-bar-left .section-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
 /* Painel de Formulário (Cadastro / Edição) */
 .form-card-admin {
-    background: #121319;
-    border: 1px solid var(--border-color);
+    background: #14151f;
+    border: 1px solid #2d3042;
     border-radius: var(--radius-xl);
     padding: 2rem;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.8);
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.9), 0 0 35px rgba(200, 16, 46, 0.15);
     position: relative;
+    animation: formSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes formSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 .form-card-admin.editing {
     border-color: var(--gold-accent, #f59e0b);
-    box-shadow: 0 0 35px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 0 40px rgba(245, 158, 11, 0.25);
 }
 
 .form-header-admin {
