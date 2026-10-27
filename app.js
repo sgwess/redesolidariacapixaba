@@ -311,8 +311,8 @@
     if (item.instagram) {
       const cleanInsta = item.instagram.replace(/^@/, '');
       actionButtons += `
-        <a href="https://instagram.com/${cleanInsta}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-instagram" title="Instagram">
-          <i class="fab fa-instagram"></i> @${cleanInsta}
+        <a href="https://instagram.com/${cleanInsta}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-instagram" title="Instagram: @${cleanInsta}">
+          <i class="fab fa-instagram"></i> Instagram
         </a>
       `;
     }

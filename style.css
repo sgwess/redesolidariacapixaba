@@ -774,14 +774,16 @@ body {
     margin-top: auto;
     padding-top: 0.75rem;
     border-top: 1px solid #1c1d28;
+    flex-wrap: wrap;
 }
 .item-action-btn {
-    flex: 1;
+    flex: 1 1 0px;
+    min-width: 80px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    padding: 0.55rem 0.75rem;
+    padding: 0.55rem 0.65rem;
     border-radius: var(--radius-md);
     font-size: 0.82rem;
     font-weight: 600;
@@ -789,6 +791,9 @@ body {
     cursor: pointer;
     transition: var(--transition);
     border: 1px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .btn-whatsapp {
     background: #15803d;
