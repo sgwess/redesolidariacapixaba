@@ -91,7 +91,7 @@ body {
     padding: 0 1.25rem;
 }
 
-/* Camada de Gradiente Ambiente */
+/* Camada de Gradiente Ambiente (Posicionada estritamente no fundo) */
 .bg-gradient-layer {
     position: fixed;
     top: 0;
@@ -99,8 +99,8 @@ body {
     width: 100vw;
     height: 100vh;
     pointer-events: none;
-    z-index: 0;
-    background: radial-gradient(ellipse 100% 80% at 50% -10%, rgba(200, 16, 46, 0.15) 0%, rgba(12, 13, 18, 0.8) 50%, #030406 100%);
+    z-index: -1;
+    background: radial-gradient(ellipse 100% 80% at 50% -10%, rgba(200, 16, 46, 0.12) 0%, transparent 60%);
 }
 
 /* Topbar */

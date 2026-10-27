@@ -59,6 +59,17 @@ body {
     padding: 1.5rem 1.25rem 4rem 1.25rem;
 }
 
+/* Garante camadas corretas sem overlays ou fog sobrepondo o conteúdo */
+.bg-gradient-layer {
+    display: none !important;
+}
+
+#authSection,
+#adminSection {
+    position: relative;
+    z-index: 1;
+}
+
 /* =========================================================
    TELA DE LOGIN SEGURO
    ========================================================= */
