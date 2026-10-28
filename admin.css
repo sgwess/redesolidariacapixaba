@@ -609,3 +609,104 @@ body {
     color: #fbbf24;
     border: 1px solid rgba(245, 158, 11, 0.35);
 }
+
+/* =========================================================
+   RESPONSIVIDADE MOBILE - PAINEL ADMINISTRATIVO
+   ========================================================= */
+@media (max-width: 768px) {
+    .admin-navbar {
+        padding: 0.75rem 0;
+        margin-bottom: 1.25rem;
+    }
+
+    .admin-nav-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .admin-nav-left {
+        gap: 0.5rem;
+    }
+
+    .admin-logo {
+        height: 28px;
+    }
+
+    .admin-title-badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.45rem;
+    }
+
+    .admin-nav-right {
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+
+    .admin-nav-right .btn {
+        padding: 0.4rem 0.55rem;
+        font-size: 0.75rem;
+        gap: 0.3rem;
+    }
+
+    .admin-action-bar {
+        padding: 1rem 1.25rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .action-bar-left .section-title {
+        font-size: 1.45rem;
+    }
+
+    .action-bar-right .btn {
+        width: 100%;
+    }
+
+    .list-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .list-toolbar > div {
+        max-width: 100% !important;
+    }
+
+    .list-filter-tabs {
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .container-admin {
+        padding: 1rem 0.75rem 3rem 0.75rem;
+    }
+
+    .admin-list-section {
+        padding: 1.25rem 0.85rem;
+    }
+
+    .form-card-admin {
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-nav-right .admin-nav-btn-text {
+        display: none;
+    }
+
+    .admin-nav-right .btn {
+        padding: 0.45rem 0.55rem;
+        font-size: 0.85rem;
+    }
+
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
