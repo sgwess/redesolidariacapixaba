@@ -186,9 +186,9 @@
 
   // Atualiza contadores do Hero
   function updateStatistics() {
-    const empresasCount = state.items.filter(i => i.tipo === 'empresa').length;
-    const autonomosCount = state.items.filter(i => i.tipo === 'autonomo').length;
-    const vagasCount = state.items.filter(i => i.tipo === 'vaga').length;
+    const empresasCount = state.items.filter(i => String(i.tipo || '').toLowerCase().trim() === 'empresa').length;
+    const autonomosCount = state.items.filter(i => String(i.tipo || '').toLowerCase().trim() === 'autonomo').length;
+    const vagasCount = state.items.filter(i => String(i.tipo || '').toLowerCase().trim() === 'vaga').length;
 
     if (dom.statEmpresas) dom.statEmpresas.textContent = empresasCount;
     if (dom.statAutonomos) dom.statAutonomos.textContent = autonomosCount;
@@ -210,8 +210,9 @@
     const categories = new Set();
 
     state.items.forEach(item => {
-      if (item.categoria && item.categoria.trim()) {
-        categories.add(item.categoria.trim());
+      const cat = String(item.categoria || '').trim();
+      if (cat) {
+        categories.add(cat);
       }
     });
 
@@ -232,29 +233,32 @@
 
     // Filtro por tipo
     if (state.currentType !== 'todos') {
-      list = list.filter(i => i.tipo === state.currentType);
+      const targetType = String(state.currentType).toLowerCase().trim();
+      list = list.filter(i => String(i.tipo || '').toLowerCase().trim() === targetType);
     }
 
     // Filtro por categoria
     if (state.currentCategory !== 'todas') {
-      list = list.filter(i => i.categoria && i.categoria.toLowerCase() === state.currentCategory.toLowerCase());
+      const targetCat = String(state.currentCategory).toLowerCase().trim();
+      list = list.filter(i => String(i.categoria || '').toLowerCase().trim() === targetCat);
     }
 
     // Filtro por cidade
     if (state.currentCity !== 'todas') {
-      list = list.filter(i => i.cidade && i.cidade.toLowerCase().includes(state.currentCity.toLowerCase()));
+      const targetCity = String(state.currentCity).toLowerCase().trim();
+      list = list.filter(i => String(i.cidade || '').toLowerCase().includes(targetCity));
     }
 
     // Filtro de busca textual
     if (state.searchQuery) {
-      const query = state.searchQuery.toLowerCase();
+      const query = String(state.searchQuery).toLowerCase().trim();
       list = list.filter(item => {
-        const nome = (item.nome || item.titulo || '').toLowerCase();
-        const desc = (item.descricao || '').toLowerCase();
-        const prof = (item.profissao || item.empresaNome || '').toLowerCase();
-        const cat = (item.categoria || '').toLowerCase();
-        const end = (item.endereco || item.bairro || '').toLowerCase();
-        const ben = (item.beneficio || item.salario || '').toLowerCase();
+        const nome = String(item.nome || item.titulo || '').toLowerCase();
+        const desc = String(item.descricao || '').toLowerCase();
+        const prof = String(item.profissao || item.empresaNome || '').toLowerCase();
+        const cat = String(item.categoria || '').toLowerCase();
+        const end = String(item.endereco || item.bairro || '').toLowerCase();
+        const ben = String(item.beneficio || item.salario || '').toLowerCase();
         return nome.includes(query) || desc.includes(query) || prof.includes(query) || 
                cat.includes(query) || end.includes(query) || ben.includes(query);
       });
@@ -292,7 +296,11 @@
 
     let html = '';
     items.forEach(item => {
-      html += renderItemCard(item);
+      try {
+        html += renderItemCard(item);
+      } catch (err) {
+        console.error('Falha ao renderizar card de iniciativa:', err, item);
+      }
     });
 
     dom.cardsGrid.innerHTML = html;
@@ -311,9 +319,12 @@
 
   // Gera o HTML individual do card
   function renderItemCard(item) {
-    const isEmpresa = item.tipo === 'empresa';
-    const isAutonomo = item.tipo === 'autonomo';
-    const isVaga = item.tipo === 'vaga';
+    if (!item) return '';
+
+    const tipo = String(item.tipo || 'empresa').toLowerCase().trim();
+    const isEmpresa = tipo === 'empresa';
+    const isAutonomo = tipo === 'autonomo';
+    const isVaga = tipo === 'vaga';
 
     const title = escapeHTML(item.nome || item.titulo || 'Sem título');
     const subtitle = escapeHTML(item.razaoSocial || item.profissao || item.empresaNome || '');
@@ -328,10 +339,12 @@
 
     // Logo / Foto
     let logoHTML = '';
-    if (item.logoUrl) {
-      logoHTML = `<img src="${escapeHTML(item.logoUrl)}" alt="${title}" class="item-logo-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'item-logo-fallback\\'>${title.charAt(0)}</div>'">`;
+    const logoUrl = item.logoUrl ? String(item.logoUrl).trim() : '';
+    const firstLetter = title ? title.charAt(0).toUpperCase() : '★';
+    if (logoUrl) {
+      logoHTML = `<img src="${escapeHTML(logoUrl)}" alt="${title}" class="item-logo-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'item-logo-fallback\\'>${firstLetter}</div>'">`;
     } else {
-      logoHTML = `<div class="item-logo-fallback">${title.charAt(0)}</div>`;
+      logoHTML = `<div class="item-logo-fallback">${firstLetter}</div>`;
     }
 
     // Tipo Badge
@@ -372,31 +385,37 @@
     // Botões de contato
     let actionButtons = '';
     if (item.whatsapp) {
-      const cleanWa = item.whatsapp.replace(/\D/g, '');
-      const waMsg = encodeURIComponent(`Olá! Encontrei seu cadastro na Rede Solidária do Coletivo Socialista Capixaba e gostaria de saber mais.`);
-      actionButtons += `
-        <a href="https://wa.me/55${cleanWa}?text=${waMsg}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-whatsapp" title="Falar no WhatsApp">
-          <i class="fab fa-whatsapp"></i> ${isVaga ? 'Candidatar-se' : 'WhatsApp'}
-        </a>
-      `;
+      const cleanWa = String(item.whatsapp).replace(/\D/g, '');
+      if (cleanWa) {
+        const waMsg = encodeURIComponent(`Olá! Encontrei seu cadastro na Rede Solidária do Coletivo Socialista Capixaba e gostaria de saber mais.`);
+        actionButtons += `
+          <a href="https://wa.me/55${cleanWa}?text=${waMsg}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-whatsapp" title="Falar no WhatsApp">
+            <i class="fab fa-whatsapp"></i> ${isVaga ? 'Candidatar-se' : 'WhatsApp'}
+          </a>
+        `;
+      }
     }
 
     if (item.instagram) {
-      const cleanInsta = item.instagram.replace(/^@/, '');
-      actionButtons += `
-        <a href="https://instagram.com/${cleanInsta}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-instagram" title="Instagram: @${cleanInsta}">
-          <i class="fab fa-instagram"></i> Instagram
-        </a>
-      `;
+      const cleanInsta = String(item.instagram).replace(/^@/, '').trim();
+      if (cleanInsta) {
+        actionButtons += `
+          <a href="https://instagram.com/${cleanInsta}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-instagram" title="Instagram: @${cleanInsta}">
+            <i class="fab fa-instagram"></i> Instagram
+          </a>
+        `;
+      }
     }
 
     if (item.site || item.portfolio) {
-      const url = item.site || item.portfolio;
-      actionButtons += `
-        <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-web" title="Site / Portfólio">
-          <i class="fas fa-arrow-up-right-from-square"></i> Web
-        </a>
-      `;
+      const url = String(item.site || item.portfolio).trim();
+      if (url) {
+        actionButtons += `
+          <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" class="item-action-btn btn-web" title="Site / Portfólio">
+            <i class="fas fa-arrow-up-right-from-square"></i> Web
+          </a>
+        `;
+      }
     }
 
     if (isVaga && item.emailCandidatura && !item.whatsapp) {
@@ -408,7 +427,7 @@
     }
 
     return `
-      <article class="item-card" data-id="${escapeHTML(item.id)}">
+      <article class="item-card" data-id="${escapeHTML(item.id || '')}">
         <div class="item-card-header">
           <div class="item-logo-wrap">
             ${logoHTML}

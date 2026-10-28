@@ -523,17 +523,18 @@
     let html = '';
     list.forEach(item => {
       const title = escapeHTML(item.nome || item.titulo || 'Sem nome');
-      const tipo = escapeHTML(item.tipo || 'empresa');
+      const tipo = escapeHTML(String(item.tipo || 'empresa').toLowerCase());
       const categoria = escapeHTML(item.categoria || 'Geral');
       const cidade = escapeHTML(item.cidade || 'ES');
-      const isAtivo = item.status === 'ativo';
+      const isAtivo = String(item.status || 'ativo').toLowerCase() === 'ativo';
 
       // Logo thumbnail
       let logoHTML = '';
+      const firstChar = title ? title.charAt(0).toUpperCase() : '★';
       if (item.logoUrl) {
         logoHTML = `<div class="table-logo-cell"><img src="${escapeHTML(item.logoUrl)}" alt="${title}" onerror="this.parentElement.innerHTML='⭐'"></div>`;
       } else {
-        logoHTML = `<div class="table-logo-cell" style="font-family: var(--font-heading); color: var(--primary-red-bright);">${title.charAt(0)}</div>`;
+        logoHTML = `<div class="table-logo-cell" style="font-family: var(--font-heading); color: var(--primary-red-bright);">${firstChar}</div>`;
       }
 
       // Tipo badge
@@ -895,12 +896,12 @@
     // Logo
     if (item.logoUrl) {
       setLogoPreview(item.logoUrl);
-      if (item.logoUrl.startsWith('data:image')) {
+      if (String(item.logoUrl || '').startsWith('data:image')) {
         state.currentLogoBase64 = item.logoUrl;
         dom.uploadUrlInput.value = '';
       } else {
         state.currentLogoBase64 = '';
-        dom.uploadUrlInput.value = item.logoUrl;
+        dom.uploadUrlInput.value = String(item.logoUrl);
       }
     } else {
       setLogoPreview('');
