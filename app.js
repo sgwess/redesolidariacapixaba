@@ -100,7 +100,7 @@
     }, duration);
   }
 
-  // Carregamento de Itens via Storage, API ou Seed Data local
+  // Carregamento de Itens via Storage, API, Google Apps Script Direto ou Seed Data
   async function loadItems() {
     const localItems = getFromStorage();
     if (localItems !== null) {
@@ -108,16 +108,23 @@
       initApp();
     }
 
+    let remoteSynced = false;
+
+    // 1. Tenta carregar via API Serverless Segura
     try {
       const resp = await fetch('/api/items');
       if (resp.ok) {
         const json = await resp.json();
         if (json.success && Array.isArray(json.data)) {
-          if (localItems === null || json.hasRemoteSheet) {
+          if (json.hasRemoteSheet) {
             state.items = json.data.filter(i => i.status === 'ativo');
             saveToStorage(json.data);
             initApp();
+            remoteSynced = true;
             return;
+          } else if (localItems === null && json.data.length > 0) {
+            state.items = json.data.filter(i => i.status === 'ativo');
+            initApp();
           }
         }
       }
@@ -125,7 +132,35 @@
       // offline / fallback
     }
 
-    if (localItems === null) {
+    // 2. Se a API do servidor não retornou a planilha remota, consulta a Planilha Google diretamente em rede
+    const sheetUrl = (window.CSC_CONFIG && window.CSC_CONFIG.googleSheetWebhookUrl) || localStorage.getItem('CSC_SHEET_WEBHOOK_URL') || '';
+    if (!remoteSynced && sheetUrl && sheetUrl.startsWith('http')) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 9000);
+        const resp = await fetch(`${sheetUrl}?action=public_list`, {
+          signal: controller.signal,
+          redirect: 'follow'
+        });
+        clearTimeout(timeoutId);
+
+        if (resp.ok) {
+          const remoteItems = await resp.json();
+          if (Array.isArray(remoteItems)) {
+            state.items = remoteItems.filter(i => i.status === 'ativo');
+            saveToStorage(remoteItems);
+            initApp();
+            remoteSynced = true;
+            return;
+          }
+        }
+      } catch (errDirect) {
+        console.warn('Google Sheets direto indisponível:', errDirect.message);
+      }
+    }
+
+    // 3. Fallback final para seed data apenas se não houver nada local nem remoto
+    if (!remoteSynced && localItems === null && state.items.length === 0) {
       if (window.CSC_SEED_DATA && Array.isArray(window.CSC_SEED_DATA)) {
         state.items = window.CSC_SEED_DATA.filter(i => i.status === 'ativo');
         saveToStorage(window.CSC_SEED_DATA);

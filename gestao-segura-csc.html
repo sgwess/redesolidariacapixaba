@@ -99,6 +99,59 @@
         </header>
 
         <main class="container-admin">
+            <!-- Painel de Conexão com o Banco de Dados em Nuvem (Google Sheets) -->
+            <section class="sheet-connection-panel" id="sheetConnectionPanel">
+                <div class="sheet-panel-header">
+                    <div class="sheet-header-left">
+                        <span class="sheet-status-dot dot-checking" id="sheetStatusDot"></span>
+                        <div class="sheet-status-info">
+                            <div class="sheet-panel-title-row">
+                                <h3 class="sheet-panel-title">
+                                    <i class="fas fa-table-cells"></i> Integração em Rede • Google Sheets
+                                </h3>
+                                <span class="sheet-status-badge badge-checking" id="sheetStatusBadge">Verificando...</span>
+                            </div>
+                            <p class="sheet-panel-subtitle" id="sheetStatusDescription">
+                                Checando sincronização com o banco de dados em rede...
+                            </p>
+                        </div>
+                    </div>
+                    <div class="sheet-header-right">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnToggleSheetConfig" title="Configurar ou alterar URL da Planilha">
+                            <i class="fas fa-gear"></i> <span class="btn-text-responsive">Configurar URL</span>
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnForceSyncSheet" title="Sincronizar dados em tempo real da planilha">
+                            <i class="fas fa-rotate"></i> <span class="btn-text-responsive">Sincronizar da Nuvem</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gaveta Colapsável de Configuração da URL da Planilha -->
+                <div class="sheet-config-drawer" id="sheetConfigDrawer" style="display: none;">
+                    <div class="sheet-config-content">
+                        <div class="sheet-config-field">
+                            <label class="form-label" for="inputSheetWebhookUrl">
+                                URL de Implantação do Google Apps Script (Web App /exec)
+                            </label>
+                            <div class="sheet-input-row">
+                                <input type="url" id="inputSheetWebhookUrl" class="form-input" placeholder="https://script.google.com/macros/s/AKfycb.../exec" autocomplete="off" spellcheck="false">
+                                <button type="button" class="btn btn-primary" id="btnSaveSheetUrl">
+                                    <i class="fas fa-plug-circle-check"></i> Testar & Conectar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="sheet-tip-box" id="sheetTipBox">
+                            <div class="sheet-tip-icon"><i class="fas fa-circle-info"></i></div>
+                            <div class="sheet-tip-text">
+                                <strong>Importante:</strong> Ao conectar sua planilha aqui, qualquer novo cadastro, alteração ou exclusão é salvo <strong>diretamente na planilha Google</strong>.
+                                Dessa forma, os dados ficam disponíveis <strong>em rede</strong> para todos os aparelhos, celulares e abas anônimas sem sumir!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Cards de Métricas e Status -->
             <div class="admin-stats-grid">
                 <div class="admin-stat-card">
@@ -327,6 +380,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="config.js"></script>
     <script src="data/seed-data.js"></script>
     <script src="admin.js"></script>
 </body>

@@ -107,9 +107,9 @@ git push -u origin main
 
 ---
 
-## 📊 Como Ativar a Planilha do Google Sheets (Opcional)
+## 📊 Como Ativar a Planilha do Google Sheets como Banco de Dados em Nuvem
 
-Se desejar que todos os cadastros sejam salvos automaticamente em uma planilha do Google Drive:
+Para que todos os cadastros fiquem salvos em rede e **nunca sumam em abas anônimas ou outros aparelhos**:
 
 1. Crie uma nova planilha no [Google Sheets](https://sheets.new).
 2. No menu superior, clique em **Extensões** > **Apps Script**.
@@ -118,9 +118,12 @@ Se desejar que todos os cadastros sejam salvos automaticamente em uma planilha d
    - Tipo: **App da Web** (ícone de engrenagem).
    - Descrição: `API Rede Solidária CSC`.
    - Executar como: **Eu (seu e-mail)**.
-   - Quem pode acessar: **Qualquer pessoa**.
+   - Quem pode acessar: **Qualquer pessoa** (OBRIGATÓRIO para sincronização em rede).
 5. Clique em **Implantar**, autorize o acesso com sua conta Google e copie a **URL do App da Web** (termina com `/exec`).
-6. Cole a URL copiada na variável `GOOGLE_SHEET_WEBHOOK_URL` no painel da Vercel. Pronto!
+6. Agora você pode vincular sua planilha de **3 formas fáceis**:
+   - **Pelo Painel de Gestão (Mais fácil)**: Acesse `/gestao-segura-csc.html`, clique em **"Configurar URL"** no banner de integração no topo, cole a URL e clique em **"Testar & Conectar"**!
+   - **No arquivo local `config.js`**: Abra `config.js` e cole a URL no campo `googleSheetWebhookUrl`.
+   - **Na Vercel**: Adicione a variável de ambiente `GOOGLE_SHEET_WEBHOOK_URL` e faça o redeploy.
 
 ---
 

@@ -8,6 +8,26 @@
 
   const TOKEN_KEY = 'CSC_ADMIN_TOKEN';
   const STORAGE_KEY = 'CSC_REDE_SOLIDARIA_DATA_V1';
+  const SHEET_URL_KEY = 'CSC_SHEET_WEBHOOK_URL';
+  const CSC_API_SECRET = 'CSC_MILITANCIA_SEGURA_2026';
+
+  function getSheetWebhookUrl() {
+    if (window.CSC_CONFIG && window.CSC_CONFIG.googleSheetWebhookUrl) {
+      return window.CSC_CONFIG.googleSheetWebhookUrl.trim();
+    }
+    return (localStorage.getItem(SHEET_URL_KEY) || '').trim();
+  }
+
+  function setSheetWebhookUrl(url) {
+    const clean = (url || '').trim();
+    if (clean) {
+      localStorage.setItem(SHEET_URL_KEY, clean);
+      if (window.CSC_CONFIG) window.CSC_CONFIG.googleSheetWebhookUrl = clean;
+    } else {
+      localStorage.removeItem(SHEET_URL_KEY);
+      if (window.CSC_CONFIG) window.CSC_CONFIG.googleSheetWebhookUrl = '';
+    }
+  }
 
   function saveToStorage(items) {
     try {
@@ -37,7 +57,9 @@
     editingItemId: null,
     currentFormType: 'empresa',
     currentLogoBase64: '',
-    listFilter: 'todos'
+    listFilter: 'todos',
+    sheetUrl: getSheetWebhookUrl(),
+    isSheetConnected: false
   };
 
   // Elementos do DOM
@@ -48,6 +70,17 @@
     authPasswordInput: document.getElementById('authPassword'),
     authErrorNotice: document.getElementById('authErrorNotice'),
     authSubmitBtn: document.getElementById('authSubmitBtn'),
+
+    // Painel de Integração Google Sheets
+    sheetConnectionPanel: document.getElementById('sheetConnectionPanel'),
+    sheetStatusDot: document.getElementById('sheetStatusDot'),
+    sheetStatusBadge: document.getElementById('sheetStatusBadge'),
+    sheetStatusDescription: document.getElementById('sheetStatusDescription'),
+    btnToggleSheetConfig: document.getElementById('btnToggleSheetConfig'),
+    btnForceSyncSheet: document.getElementById('btnForceSyncSheet'),
+    sheetConfigDrawer: document.getElementById('sheetConfigDrawer'),
+    inputSheetWebhookUrl: document.getElementById('inputSheetWebhookUrl'),
+    btnSaveSheetUrl: document.getElementById('btnSaveSheetUrl'),
 
     // Top Admin Nav
     adminLogoutBtn: document.getElementById('adminLogoutBtn'),
@@ -202,6 +235,160 @@
     }
   }
 
+  // =========================================================
+  // INTEGRAÇÃO COM PLANILHA GOOGLE (APPS SCRIPT)
+  // =========================================================
+
+  function updateSheetStatusUI(status, badgeText, description) {
+    if (!dom.sheetConnectionPanel) return;
+
+    dom.sheetConnectionPanel.classList.remove('is-connected', 'is-disconnected');
+    dom.sheetStatusDot.classList.remove('dot-connected', 'dot-disconnected', 'dot-checking');
+    dom.sheetStatusBadge.classList.remove('badge-connected', 'badge-disconnected', 'badge-checking');
+
+    if (status === 'connected') {
+      dom.sheetConnectionPanel.classList.add('is-connected');
+      dom.sheetStatusDot.classList.add('dot-connected');
+      dom.sheetStatusBadge.classList.add('badge-connected');
+      state.isSheetConnected = true;
+    } else if (status === 'disconnected') {
+      dom.sheetConnectionPanel.classList.add('is-disconnected');
+      dom.sheetStatusDot.classList.add('dot-disconnected');
+      dom.sheetStatusBadge.classList.add('badge-disconnected');
+      state.isSheetConnected = false;
+    } else {
+      dom.sheetStatusDot.classList.add('dot-checking');
+      dom.sheetStatusBadge.classList.add('badge-checking');
+    }
+
+    if (dom.sheetStatusBadge) dom.sheetStatusBadge.textContent = badgeText;
+    if (dom.sheetStatusDescription) dom.sheetStatusDescription.textContent = description;
+  }
+
+  function toggleSheetConfigDrawer() {
+    if (!dom.sheetConfigDrawer) return;
+    const isHidden = dom.sheetConfigDrawer.style.display === 'none' || !dom.sheetConfigDrawer.style.display;
+    dom.sheetConfigDrawer.style.display = isHidden ? 'block' : 'none';
+    if (isHidden && dom.inputSheetWebhookUrl) {
+      dom.inputSheetWebhookUrl.value = getSheetWebhookUrl();
+      dom.inputSheetWebhookUrl.focus();
+    }
+  }
+
+  // Testa conexão direta com a URL do Google Apps Script
+  async function testAndSaveSheetUrl() {
+    if (!dom.inputSheetWebhookUrl) return;
+    const url = dom.inputSheetWebhookUrl.value.trim();
+
+    if (!url) {
+      if (confirm('Deseja desvincular a URL da planilha atual? Os dados ficarão apenas no navegador local.')) {
+        setSheetWebhookUrl('');
+        updateSheetStatusUI('disconnected', 'Desconectada', 'Nenhuma planilha configurada. Cole a URL do Apps Script para salvar em rede.');
+        alertMsg('URL da planilha removida.');
+      }
+      return;
+    }
+
+    if (!url.startsWith('https://script.google.com/macros/s/') || !url.endsWith('/exec')) {
+      alertMsg('Aviso: A URL do Google Apps Script geralmente começa com "https://script.google.com/macros/s/" e termina em "/exec". Verifique se você copiou o link correto da implantação da aplicação Web.');
+    }
+
+    dom.btnSaveSheetUrl.disabled = true;
+    dom.btnSaveSheetUrl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testando Conexão...';
+    updateSheetStatusUI('checking', 'Testando...', 'Conectando à planilha Google...');
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const resp = await fetch(`${url}?action=public_list`, {
+        signal: controller.signal,
+        redirect: 'follow'
+      });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) {
+        throw new Error(`O servidor retornou erro HTTP ${resp.status}: ${resp.statusText}`);
+      }
+
+      const remoteData = await resp.json();
+      if (!Array.isArray(remoteData)) {
+        throw new Error('A resposta da planilha não é uma lista válida de dados.');
+      }
+
+      // Conexão bem-sucedida! Salva URL no storage e config
+      setSheetWebhookUrl(url);
+      state.sheetUrl = url;
+
+      // Se houver dados remotos na planilha, atualiza o estado
+      if (remoteData.length > 0) {
+        state.items = remoteData;
+        saveToStorage(state.items);
+        renderAdminDashboard();
+      } else if (state.items.length > 0) {
+        // Se a planilha estiver vazia e já temos itens cadastrados localmente, sincroniza-os para a planilha
+        const doSyncInitial = confirm(`Planilha conectada com sucesso! Ela está atualmente vazia.\nDeseja enviar os ${state.items.length} cadastros existentes para a planilha agora?`);
+        if (doSyncInitial) {
+          for (const item of state.items) {
+            await syncDirectWithSheet('create', item);
+          }
+        }
+      }
+
+      updateSheetStatusUI('connected', 'Conectada (Rede)', `Planilha Google ativa com ${state.items.length} cadastros sincronizados em tempo real.`);
+      alertMsg(`✅ Conexão estabelecida com sucesso!\nA planilha agora é o banco de dados oficial da Rede Solidária e está sincronizada em rede para todos os dispositivos e abas anônimas.`);
+      
+      if (dom.sheetConfigDrawer) dom.sheetConfigDrawer.style.display = 'none';
+
+    } catch (err) {
+      console.error('Erro ao testar planilha:', err);
+      updateSheetStatusUI('disconnected', 'Falha no Teste', `Não foi possível conectar: ${err.message}`);
+      alertMsg(`❌ Não foi possível conectar com a planilha Google:\n\n${err.message}\n\nDicas:\n1. Certifique-se de que a implantação foi feita como "App da Web" (Web app).\n2. Em "Quem pode acessar", selecione OBRIGATORIAMENTE "Qualquer pessoa" (Anyone).\n3. Verifique se a URL termina em "/exec".`);
+    } finally {
+      dom.btnSaveSheetUrl.disabled = false;
+      dom.btnSaveSheetUrl.innerHTML = '<i class="fas fa-plug-circle-check"></i> Testar & Conectar';
+    }
+  }
+
+  // Envia requisições de gravação/edição/exclusão diretamente para a planilha (fallback seguro contra bloqueios)
+  async function syncDirectWithSheet(action, payload) {
+    const sheetUrl = getSheetWebhookUrl();
+    if (!sheetUrl) {
+      return { success: false, error: 'URL da planilha não configurada.' };
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      
+      // Enviamos com Content-Type text/plain para evitar preflight OPTIONS que o Apps Script rejeita
+      const resp = await fetch(sheetUrl, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: action,
+          secretToken: CSC_API_SECRET,
+          id: payload ? payload.id : undefined,
+          status: payload ? payload.status : undefined,
+          item: payload
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const text = await resp.text();
+      let resJson = {};
+      try { resJson = JSON.parse(text); } catch (e) { resJson = { raw: text }; }
+
+      if (resp.ok && (resJson.success || !resJson.error)) {
+        return { success: true, message: resJson.message || 'Gravado na planilha.' };
+      }
+      return { success: false, error: resJson.error || `HTTP ${resp.status}` };
+    } catch (err) {
+      return { success: false, error: err.name === 'AbortError' ? 'Tempo limite esgotado' : err.message };
+    }
+  }
+
   // 4. Carregar Itens da Administração
   async function loadAdminItems() {
     const localSaved = getFromStorage();
@@ -210,6 +397,11 @@
       renderAdminDashboard();
     }
 
+    updateSheetStatusUI('checking', 'Verificando...', 'Verificando conexão com banco de dados em rede...');
+
+    let syncedFromServer = false;
+
+    // 1. Tenta carregar via API Serverless Segura
     try {
       const resp = await fetch('/api/admin-items', {
         headers: { 'Authorization': `Bearer ${state.token}` }
@@ -217,16 +409,52 @@
       if (resp.ok) {
         const data = await resp.json();
         if (data.success && Array.isArray(data.data)) {
-          if (localSaved === null || data.hasRemoteSheet) {
+          if (data.hasRemoteSheet) {
             state.items = data.data;
             saveToStorage(state.items);
             renderAdminDashboard();
+            updateSheetStatusUI('connected', 'Conectada (Servidor)', `Banco de dados Google Sheets ativo via Vercel (${data.data.length} registros).`);
+            syncedFromServer = true;
+            return;
+          } else if (data.sheetConfigured && data.sheetError) {
+            updateSheetStatusUI('disconnected', 'Erro Vercel', `Planilha na Vercel falhou: ${data.sheetError}`);
           }
-          return;
         }
       }
     } catch (err) {
-      // Offline / fallback
+      // API serverless indisponível ou offline
+    }
+
+    // 2. Se a API serverless não sincronizou a planilha, tenta sincronizar diretamente usando a URL da planilha
+    const directUrl = getSheetWebhookUrl();
+    if (directUrl && !syncedFromServer) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const sheetResp = await fetch(`${directUrl}?action=public_list`, {
+          signal: controller.signal,
+          redirect: 'follow'
+        });
+        clearTimeout(timeoutId);
+
+        if (sheetResp.ok) {
+          const sheetData = await sheetResp.json();
+          if (Array.isArray(sheetData) && sheetData.length > 0) {
+            state.items = sheetData;
+            saveToStorage(state.items);
+            renderAdminDashboard();
+            updateSheetStatusUI('connected', 'Conectada (Direto)', `Conexão direta ativa com Google Sheets (${sheetData.length} registros em rede).`);
+            return;
+          } else if (Array.isArray(sheetData)) {
+            updateSheetStatusUI('connected', 'Conectada', 'Planilha Google conectada (atualmente sem registros cadastrados).');
+            return;
+          }
+        }
+      } catch (directErr) {
+        updateSheetStatusUI('disconnected', 'Erro de Acesso', `Falha ao ler da planilha: ${directErr.message}`);
+      }
+    } else if (!directUrl && !syncedFromServer) {
+      updateSheetStatusUI('disconnected', 'Desconectada', 'Nenhuma planilha vinculada. Cadastros estão apenas neste navegador local. Configure no botão ao lado.');
     }
 
     // Se ainda não temos itens e nem tínhamos no storage, usa o seed inicial e persiste
@@ -469,9 +697,9 @@
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        // Redimensiona no Canvas para no máximo 600x600 px (otimizado e ultra-rápido)
+        // Redimensiona no Canvas para no máximo 220x220 px (perfeito para cards e cabe no Sheets com segurança)
         const canvas = document.createElement('canvas');
-        const maxDimension = 600;
+        const maxDimension = 220;
         let width = img.width;
         let height = img.height;
 
@@ -492,8 +720,8 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Converte para WebP (ou JPEG se não suportado) com qualidade 0.82
-        const compressedBase64 = canvas.toDataURL('image/webp', 0.82);
+        // Converte para WebP com qualidade 0.72 (tamanho de 3KB a 8KB)
+        const compressedBase64 = canvas.toDataURL('image/webp', 0.72);
         setLogoPreview(compressedBase64);
         state.currentLogoBase64 = compressedBase64;
         dom.uploadUrlInput.value = '';
@@ -541,14 +769,21 @@
     }
 
     dom.submitFormBtn.disabled = true;
-    dom.submitFormBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando no Sistema...';
+    dom.submitFormBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gravando na Rede Solidária...';
 
     const isEdit = Boolean(state.editingItemId);
     const method = isEdit ? 'PUT' : 'POST';
     if (isEdit) {
       payload.id = state.editingItemId;
+    } else {
+      payload.id = `${state.currentFormType}-${Date.now()}`;
+      if (!payload.status) payload.status = 'ativo';
+      if (!payload.dataCadastro) payload.dataCadastro = new Date().toISOString();
     }
 
+    let savedToCloud = false;
+
+    // 1. Tenta salvar via API Serverless
     try {
       const resp = await fetch('/api/admin-items', {
         method: method,
@@ -560,28 +795,41 @@
       });
 
       const resData = await resp.json().catch(() => ({}));
-      if (resp.ok && resData.success) {
-        alertMsg(resData.message || (isEdit ? 'Cadastro atualizado com sucesso!' : 'Novo cadastro publicado com sucesso!'));
+      if (resp.ok && resData.success && resData.sheetSynced) {
+        savedToCloud = true;
       }
     } catch (err) {
-      alertMsg(isEdit ? 'Cadastro atualizado com sucesso!' : 'Novo cadastro publicado com sucesso!');
-    } finally {
-      if (isEdit) {
-        const idx = state.items.findIndex(i => i.id === state.editingItemId);
-        if (idx !== -1) {
-          state.items[idx] = { ...state.items[idx], ...payload };
-        }
-      } else {
-        if (!payload.id) payload.id = `${state.currentFormType}-${Date.now()}`;
-        if (!payload.status) payload.status = 'ativo';
-        if (!payload.dataCadastro) payload.dataCadastro = new Date().toISOString();
-        state.items.unshift(payload);
+      // API serverless falhou ou offline
+    }
+
+    // 2. Se o servidor Vercel não confirmou gravação na planilha, tenta sincronização direta com a Planilha Google
+    if (!savedToCloud) {
+      const directSync = await syncDirectWithSheet(isEdit ? 'update' : 'create', payload);
+      if (directSync.success) {
+        savedToCloud = true;
       }
-      saveToStorage(state.items);
-      closeForm();
-      renderAdminDashboard();
-      dom.submitFormBtn.disabled = false;
-      dom.submitFormBtn.innerHTML = '<i class="fas fa-floppy-disk"></i> Publicar / Salvar Cadastro';
+    }
+
+    // 3. Atualiza estado e storage local
+    if (isEdit) {
+      const idx = state.items.findIndex(i => i.id === state.editingItemId);
+      if (idx !== -1) {
+        state.items[idx] = { ...state.items[idx], ...payload };
+      }
+    } else {
+      state.items.unshift(payload);
+    }
+    saveToStorage(state.items);
+    closeForm();
+    renderAdminDashboard();
+
+    dom.submitFormBtn.disabled = false;
+    dom.submitFormBtn.innerHTML = '<i class="fas fa-floppy-disk"></i> Publicar / Salvar Cadastro';
+
+    if (savedToCloud) {
+      alertMsg(`✅ SUCESSO!\n${isEdit ? 'Cadastro atualizado' : 'Novo cadastro publicado'} e gravado na Planilha Google com sucesso!\nO registro agora está disponível em rede para todos os celulares e abas anônimas.`);
+    } else {
+      alertMsg(`⚠️ ATENÇÃO: O cadastro foi salvo APENAS NESTE NAVEGADOR!\nNão foi possível salvar na rede Google Sheets porque nenhuma planilha está conectada ou o link falhou.\n\nPara que os dados fiquem salvos em rede e não sumam em aba anônima, clique em "Configurar URL" no topo da página e conecte sua planilha.`);
     }
   }
 
@@ -702,6 +950,7 @@
       renderAdminDashboard();
     }
 
+    // 1. Tenta API serverless
     try {
       await fetch('/api/admin-items', {
         method: 'PATCH',
@@ -712,8 +961,11 @@
         body: JSON.stringify({ id, status: newStatus })
       });
     } catch (e) {
-      // offline / fallback
+      // offline
     }
+
+    // 2. Sincroniza diretamente na planilha Google
+    await syncDirectWithSheet('toggle_status', { id, status: newStatus });
   }
 
   // Exclui item permanentemente
@@ -721,23 +973,27 @@
     const item = state.items.find(i => i.id === id);
     const nome = item ? (item.nome || item.titulo) : 'este registro';
 
-    if (!confirm(`Tem certeza absoluta de que deseja EXCLUIR PERMANENTEMENTE "${nome}" da Rede Solidária?`)) {
+    if (!confirm(`Tem certeza absoluta de que deseja EXCLUIR PERMANENTEMENTE "${nome}" da Rede Solidária e da Planilha Google?`)) {
       return;
     }
 
+    state.items = state.items.filter(i => i.id !== id);
+    saveToStorage(state.items);
+    renderAdminDashboard();
+
+    // 1. Tenta API serverless
     try {
       await fetch(`/api/admin-items?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${state.token}` }
       });
     } catch (e) {
-      // offline / fallback
+      // offline
     }
 
-    state.items = state.items.filter(i => i.id !== id);
-    saveToStorage(state.items);
-    alertMsg('Registro excluído com sucesso!');
-    renderAdminDashboard();
+    // 2. Sincroniza diretamente na planilha Google
+    await syncDirectWithSheet('delete', { id });
+    alertMsg('Registro excluído permanentemente da Rede Solidária e da Planilha.');
   }
 
   // Conecta eventos do painel
@@ -750,6 +1006,11 @@
 
     // Atualizar Lista
     if (dom.refreshListBtn) dom.refreshListBtn.addEventListener('click', loadAdminItems);
+
+    // Painel de Configuração da Planilha Google
+    if (dom.btnToggleSheetConfig) dom.btnToggleSheetConfig.addEventListener('click', toggleSheetConfigDrawer);
+    if (dom.btnSaveSheetUrl) dom.btnSaveSheetUrl.addEventListener('click', testAndSaveSheetUrl);
+    if (dom.btnForceSyncSheet) dom.btnForceSyncSheet.addEventListener('click', loadAdminItems);
 
     // Abas de tipo de formulário
     dom.formTypeTabs.forEach(tab => {

@@ -5,7 +5,6 @@
  * 
  * ÁREA RESTRITA: Exige cabeçalho 'Authorization: Bearer <token>'
  * Token assinado por HMAC-SHA256 validado no backend.
- * Nenhuma alteração é aceita sem credencial verificada.
  */
 
 const { verifySignedToken } = require('./admin-auth.js');
@@ -31,8 +30,8 @@ function sanitizeMediaUrl(url) {
   url = url.trim();
   // Permite data:image (upload local base64/webp)
   if (url.startsWith('data:image/')) {
-    // Limite máximo de segurança para imagem Base64 em payload (~2.5MB)
-    if (url.length > 3500000) return '';
+    // Limite máximo de segurança para imagem Base64 em payload (~40KB para segurança do Sheets)
+    if (url.length > 50000) return '';
     return url;
   }
   // Permite apenas http e https válidos
@@ -40,6 +39,46 @@ function sanitizeMediaUrl(url) {
     return url;
   }
   return '';
+}
+
+// Helper para chamada segura ao Google Apps Script
+async function callSheet(sheetUrl, payload, timeoutMs = 11000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const resp = await fetch(sheetUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    const text = await resp.text();
+    let json = {};
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      json = { raw: text };
+    }
+
+    return {
+      ok: resp.ok,
+      status: resp.status,
+      data: json,
+      error: resp.ok && (json.success || !json.error) ? null : (json.error || `HTTP ${resp.status}`)
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      error: err.name === 'AbortError' ? 'Tempo limite esgotado ao sincronizar com Google Sheets' : err.message
+    };
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -74,13 +113,16 @@ module.exports = async function handler(req, res) {
     // ==========================================
     if (req.method === 'GET') {
       let items = [...SEED_DATA];
+      let hasRemoteSheet = false;
+      let sheetError = null;
 
-      if (sheetUrl) {
+      if (sheetUrl && sheetUrl.startsWith('http')) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 4000);
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
           const resp = await fetch(`${sheetUrl}?action=admin_list&secret=${encodeURIComponent(cscSecret)}`, {
-            signal: controller.signal
+            signal: controller.signal,
+            redirect: 'follow'
           });
           clearTimeout(timeoutId);
 
@@ -88,16 +130,22 @@ module.exports = async function handler(req, res) {
             const remoteData = await resp.json();
             if (Array.isArray(remoteData)) {
               items = remoteData;
+              hasRemoteSheet = true;
             }
+          } else {
+            sheetError = `HTTP ${resp.status}: ${resp.statusText}`;
           }
         } catch (fetchErr) {
-          console.warn('Google Sheets indisponível para admin GET, usando dados em memória:', fetchErr.message);
+          sheetError = fetchErr.name === 'AbortError' ? 'Tempo limite esgotado ao buscar lista da planilha' : fetchErr.message;
+          console.warn('Google Sheets indisponível para admin GET:', sheetError);
         }
       }
 
       return res.status(200).json({
         success: true,
-        hasRemoteSheet: Boolean(sheetUrl),
+        hasRemoteSheet: hasRemoteSheet,
+        sheetConfigured: Boolean(sheetUrl),
+        sheetError: sheetError,
         total: items.length,
         data: items
       });
@@ -161,26 +209,24 @@ module.exports = async function handler(req, res) {
       // Adiciona em memória local / seed
       SEED_DATA.unshift(newItem);
 
+      let sheetSync = { ok: false, error: 'Planilha não configurada nas variáveis da Vercel' };
+
       // Sincroniza com o Google Sheets se disponível
-      if (sheetUrl) {
-        try {
-          await fetch(sheetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'create',
-              secretToken: cscSecret,
-              item: newItem
-            })
-          });
-        } catch (syncErr) {
-          console.warn('Erro ao sincronizar novo item com Sheets:', syncErr.message);
-        }
+      if (sheetUrl && sheetUrl.startsWith('http')) {
+        sheetSync = await callSheet(sheetUrl, {
+          action: 'create',
+          secretToken: cscSecret,
+          item: newItem
+        });
       }
 
       return res.status(201).json({
         success: true,
-        message: 'Cadastro realizado e publicado com sucesso!',
+        message: sheetSync.ok 
+          ? 'Cadastro realizado e sincronizado na Planilha Google com sucesso!'
+          : 'Cadastro gravado no servidor local CSC. Atenção: sincronização com a planilha falhou: ' + sheetSync.error,
+        sheetSynced: sheetSync.ok,
+        sheetError: sheetSync.error,
         item: newItem
       });
     }
@@ -197,9 +243,6 @@ module.exports = async function handler(req, res) {
       }
 
       const index = SEED_DATA.findIndex(i => i.id === id);
-      if (index === -1 && !sheetUrl) {
-        return res.status(404).json({ success: false, error: 'Registro não encontrado.' });
-      }
 
       const updatedFields = {
         ...((index !== -1) ? SEED_DATA[index] : {}),
@@ -237,26 +280,23 @@ module.exports = async function handler(req, res) {
         SEED_DATA[index] = { ...SEED_DATA[index], ...updatedFields };
       }
 
-      if (sheetUrl) {
-        try {
-          await fetch(sheetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'update',
-              secretToken: cscSecret,
-              id: id,
-              item: updatedFields
-            })
-          });
-        } catch (syncErr) {
-          console.warn('Erro ao atualizar no Google Sheets:', syncErr.message);
-        }
+      let sheetSync = { ok: false, error: 'Planilha não configurada' };
+      if (sheetUrl && sheetUrl.startsWith('http')) {
+        sheetSync = await callSheet(sheetUrl, {
+          action: 'update',
+          secretToken: cscSecret,
+          id: id,
+          item: updatedFields
+        });
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Registro atualizado com sucesso!',
+        message: sheetSync.ok 
+          ? 'Registro atualizado e sincronizado na Planilha Google com sucesso!'
+          : 'Registro atualizado localmente.',
+        sheetSynced: sheetSync.ok,
+        sheetError: sheetSync.error,
         item: updatedFields
       });
     }
@@ -272,25 +312,20 @@ module.exports = async function handler(req, res) {
 
       SEED_DATA = SEED_DATA.filter(i => i.id !== id);
 
-      if (sheetUrl) {
-        try {
-          await fetch(sheetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'delete',
-              secretToken: cscSecret,
-              id: id
-            })
-          });
-        } catch (syncErr) {
-          console.warn('Erro ao deletar no Google Sheets:', syncErr.message);
-        }
+      let sheetSync = { ok: false, error: 'Planilha não configurada' };
+      if (sheetUrl && sheetUrl.startsWith('http')) {
+        sheetSync = await callSheet(sheetUrl, {
+          action: 'delete',
+          secretToken: cscSecret,
+          id: id
+        });
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Registro removido permanentemente da Rede Solidária.'
+        message: 'Registro removido da Rede Solidária.',
+        sheetSynced: sheetSync.ok,
+        sheetError: sheetSync.error
       });
     }
 
@@ -307,26 +342,21 @@ module.exports = async function handler(req, res) {
         item.status = newStatus;
       }
 
-      if (sheetUrl) {
-        try {
-          await fetch(sheetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'toggle_status',
-              secretToken: cscSecret,
-              id: cleanId,
-              status: newStatus
-            })
-          });
-        } catch (syncErr) {
-          console.warn('Erro ao alterar status no Sheets:', syncErr.message);
-        }
+      let sheetSync = { ok: false, error: 'Planilha não configurada' };
+      if (sheetUrl && sheetUrl.startsWith('http')) {
+        sheetSync = await callSheet(sheetUrl, {
+          action: 'toggle_status',
+          secretToken: cscSecret,
+          id: cleanId,
+          status: newStatus
+        });
       }
 
       return res.status(200).json({
         success: true,
-        message: `Status atualizado para "${newStatus}".`
+        message: `Status atualizado para "${newStatus}".`,
+        sheetSynced: sheetSync.ok,
+        sheetError: sheetSync.error
       });
     }
 

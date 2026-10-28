@@ -710,3 +710,199 @@ body {
         gap: 0.75rem;
     }
 }
+
+/* =========================================================
+   PAINEL DE INTEGRAÇÃO GOOGLE SHEETS
+   ========================================================= */
+.sheet-connection-panel {
+    background: #111319;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: var(--transition-normal);
+}
+
+.sheet-connection-panel.is-connected {
+    border-color: rgba(34, 197, 94, 0.35);
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.04) 0%, #111319 100%);
+}
+
+.sheet-connection-panel.is-disconnected {
+    border-color: rgba(200, 16, 46, 0.4);
+    background: linear-gradient(180deg, rgba(200, 16, 46, 0.05) 0%, #111319 100%);
+}
+
+.sheet-panel-header {
+    padding: 1.15rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.sheet-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.sheet-status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.sheet-status-dot.dot-checking {
+    background: #eab308;
+    box-shadow: 0 0 10px #eab308;
+    animation: pulseStatus 1.5s infinite;
+}
+
+.sheet-status-dot.dot-connected {
+    background: #22c55e;
+    box-shadow: 0 0 12px #22c55e;
+}
+
+.sheet-status-dot.dot-disconnected {
+    background: #ef4444;
+    box-shadow: 0 0 12px #ef4444;
+    animation: pulseStatus 2s infinite;
+}
+
+@keyframes pulseStatus {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.88); }
+}
+
+.sheet-status-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.sheet-panel-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.sheet-panel-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-white);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.sheet-status-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.badge-checking {
+    background: rgba(234, 179, 8, 0.15);
+    color: #facc15;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.badge-connected {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.badge-disconnected {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.sheet-panel-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.sheet-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.sheet-config-drawer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0d0f14;
+    padding: 1.25rem 1.4rem;
+}
+
+.sheet-config-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sheet-config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.sheet-input-row {
+    display: flex;
+    gap: 0.65rem;
+}
+
+.sheet-input-row input {
+    flex: 1;
+}
+
+.sheet-tip-box {
+    background: rgba(200, 16, 46, 0.07);
+    border: 1px solid rgba(200, 16, 46, 0.22);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.84rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+.sheet-tip-icon {
+    color: var(--primary-red-bright);
+    font-size: 1.05rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.sheet-tip-text strong {
+    color: var(--text-white);
+}
+
+@media (max-width: 640px) {
+    .sheet-input-row {
+        flex-direction: column;
+    }
+
+    .sheet-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+

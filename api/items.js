@@ -25,31 +25,41 @@ module.exports = async function handler(req, res) {
     const { tipo, categoria, cidade, q } = req.query;
 
     let items = [...SEED_DATA];
+    let hasRemoteSheet = false;
+    let sheetError = null;
 
-    // Se houver Google Sheets configurado, busca atualizações
+    // Se houver Google Sheets configurado na variável de ambiente do Vercel, busca atualizações
     const sheetUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
-    if (sheetUrl) {
+    if (sheetUrl && sheetUrl.startsWith('http')) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        // Apps Script pode levar alguns segundos em cold start
+        const timeoutId = setTimeout(() => controller.abort(), 9500);
         const resp = await fetch(`${sheetUrl}?action=public_list`, {
-          signal: controller.signal
+          signal: controller.signal,
+          redirect: 'follow'
         });
         clearTimeout(timeoutId);
 
         if (resp.ok) {
           const remoteData = await resp.json();
-          if (Array.isArray(remoteData) && remoteData.length > 0) {
+          if (Array.isArray(remoteData)) {
             // Mescla dados remotos aprovados
             const approvedRemote = remoteData.filter(i => i.status === 'ativo');
             if (approvedRemote.length > 0) {
               items = approvedRemote;
+              hasRemoteSheet = true;
+            } else if (remoteData.length === 0) {
+              // A planilha existe mas está vazia
+              hasRemoteSheet = true;
             }
           }
+        } else {
+          sheetError = `HTTP ${resp.status}: ${resp.statusText}`;
         }
       } catch (fetchErr) {
-        // Fallback silencioso para os dados locais caso o Google Sheets demore ou oscile
-        console.warn('Aviso: usando fallback local para itens públicos:', fetchErr.message);
+        sheetError = fetchErr.name === 'AbortError' ? 'Tempo limite esgotado ao contatar Google Sheets' : fetchErr.message;
+        console.warn('Aviso: usando fallback local para itens públicos:', sheetError);
       }
     }
 
@@ -90,7 +100,9 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      hasRemoteSheet: Boolean(sheetUrl),
+      hasRemoteSheet: hasRemoteSheet,
+      sheetConfigured: Boolean(sheetUrl),
+      sheetError: sheetError,
       total: items.length,
       data: items
     });
