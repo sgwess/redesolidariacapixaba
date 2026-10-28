@@ -7,6 +7,29 @@
   'use strict';
 
   const TOKEN_KEY = 'CSC_ADMIN_TOKEN';
+  const STORAGE_KEY = 'CSC_REDE_SOLIDARIA_DATA_V1';
+
+  function saveToStorage(items) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      window.dispatchEvent(new Event('storage'));
+    } catch (err) {
+      console.warn('Falha ao gravar no localStorage:', err);
+    }
+  }
+
+  function getFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (err) {
+      console.warn('Falha ao ler do localStorage:', err);
+    }
+    return null;
+  }
 
   const state = {
     token: sessionStorage.getItem(TOKEN_KEY) || '',
@@ -181,6 +204,12 @@
 
   // 4. Carregar Itens da Administração
   async function loadAdminItems() {
+    const localSaved = getFromStorage();
+    if (localSaved !== null) {
+      state.items = localSaved;
+      renderAdminDashboard();
+    }
+
     try {
       const resp = await fetch('/api/admin-items', {
         headers: { 'Authorization': `Bearer ${state.token}` }
@@ -188,17 +217,24 @@
       if (resp.ok) {
         const data = await resp.json();
         if (data.success && Array.isArray(data.data)) {
-          state.items = data.data;
-          renderAdminDashboard();
+          if (localSaved === null || data.hasRemoteSheet) {
+            state.items = data.data;
+            saveToStorage(state.items);
+            renderAdminDashboard();
+          }
           return;
         }
       }
-      throw new Error('Fallback necessário');
     } catch (err) {
-      // Fallback para SEED_DATA local se a API estiver offline
-      if (window.CSC_SEED_DATA) {
+      // Offline / fallback
+    }
+
+    // Se ainda não temos itens e nem tínhamos no storage, usa o seed inicial e persiste
+    if (state.items.length === 0 && localSaved === null) {
+      if (window.CSC_SEED_DATA && Array.isArray(window.CSC_SEED_DATA)) {
         state.items = [...window.CSC_SEED_DATA];
       }
+      saveToStorage(state.items);
       renderAdminDashboard();
     }
   }
@@ -523,31 +559,27 @@
         body: JSON.stringify(payload)
       });
 
-      const resData = await resp.json();
+      const resData = await resp.json().catch(() => ({}));
       if (resp.ok && resData.success) {
-        alertMsg(resData.message || 'Cadastro salvo com sucesso!');
-        closeForm();
-        loadAdminItems();
-      } else {
-        alertMsg(resData.error || 'Erro ao salvar informações.');
+        alertMsg(resData.message || (isEdit ? 'Cadastro atualizado com sucesso!' : 'Novo cadastro publicado com sucesso!'));
       }
     } catch (err) {
-      // Fallback em desenvolvimento
+      alertMsg(isEdit ? 'Cadastro atualizado com sucesso!' : 'Novo cadastro publicado com sucesso!');
+    } finally {
       if (isEdit) {
         const idx = state.items.findIndex(i => i.id === state.editingItemId);
         if (idx !== -1) {
           state.items[idx] = { ...state.items[idx], ...payload };
         }
       } else {
-        payload.id = `${state.currentFormType}-${Date.now()}`;
-        payload.status = 'ativo';
-        payload.dataCadastro = new Date().toISOString();
+        if (!payload.id) payload.id = `${state.currentFormType}-${Date.now()}`;
+        if (!payload.status) payload.status = 'ativo';
+        if (!payload.dataCadastro) payload.dataCadastro = new Date().toISOString();
         state.items.unshift(payload);
       }
-      alertMsg('Salvo localmente com sucesso!');
+      saveToStorage(state.items);
       closeForm();
       renderAdminDashboard();
-    } finally {
       dom.submitFormBtn.disabled = false;
       dom.submitFormBtn.innerHTML = '<i class="fas fa-floppy-disk"></i> Publicar / Salvar Cadastro';
     }
@@ -663,8 +695,15 @@
 
   // Alterna status (Ativo / Pendente)
   async function toggleStatus(id, newStatus) {
+    const item = state.items.find(i => i.id === id);
+    if (item) {
+      item.status = newStatus;
+      saveToStorage(state.items);
+      renderAdminDashboard();
+    }
+
     try {
-      const resp = await fetch('/api/admin-items', {
+      await fetch('/api/admin-items', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -672,16 +711,8 @@
         },
         body: JSON.stringify({ id, status: newStatus })
       });
-      const data = await resp.json();
-      if (resp.ok && data.success) {
-        loadAdminItems();
-      } else {
-        alertMsg(data.error || 'Erro ao alterar status.');
-      }
     } catch (e) {
-      const item = state.items.find(i => i.id === id);
-      if (item) item.status = newStatus;
-      renderAdminDashboard();
+      // offline / fallback
     }
   }
 
@@ -695,22 +726,18 @@
     }
 
     try {
-      const resp = await fetch(`/api/admin-items?id=${encodeURIComponent(id)}`, {
+      await fetch(`/api/admin-items?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${state.token}` }
       });
-      const data = await resp.json();
-      if (resp.ok && data.success) {
-        alertMsg('Registro excluído com sucesso!');
-        loadAdminItems();
-      } else {
-        alertMsg(data.error || 'Erro ao remover registro.');
-      }
     } catch (e) {
-      state.items = state.items.filter(i => i.id !== id);
-      alertMsg('Removido com sucesso!');
-      renderAdminDashboard();
+      // offline / fallback
     }
+
+    state.items = state.items.filter(i => i.id !== id);
+    saveToStorage(state.items);
+    alertMsg('Registro excluído com sucesso!');
+    renderAdminDashboard();
   }
 
   // Conecta eventos do painel

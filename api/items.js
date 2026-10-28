@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
   // Headers de segurança e controle de cache
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -90,6 +90,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
+      hasRemoteSheet: Boolean(sheetUrl),
       total: items.length,
       data: items
     });

@@ -6,6 +6,27 @@
 (function () {
   'use strict';
 
+  const STORAGE_KEY = 'CSC_REDE_SOLIDARIA_DATA_V1';
+
+  function getFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (err) {
+      console.warn('Falha ao ler do localStorage:', err);
+    }
+    return null;
+  }
+
+  function saveToStorage(items) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (err) {}
+  }
+
   // Estado global da aplicação cliente
   const state = {
     items: [],
@@ -79,23 +100,35 @@
     }, duration);
   }
 
-  // Carregamento de Itens via API ou Seed Data local
+  // Carregamento de Itens via Storage, API ou Seed Data local
   async function loadItems() {
+    const localItems = getFromStorage();
+    if (localItems !== null) {
+      state.items = localItems.filter(i => i.status === 'ativo');
+      initApp();
+    }
+
     try {
       const resp = await fetch('/api/items');
       if (resp.ok) {
         const json = await resp.json();
         if (json.success && Array.isArray(json.data)) {
-          state.items = json.data;
-          initApp();
-          return;
+          if (localItems === null || json.hasRemoteSheet) {
+            state.items = json.data.filter(i => i.status === 'ativo');
+            saveToStorage(json.data);
+            initApp();
+            return;
+          }
         }
       }
-      throw new Error('Fallback necessário');
     } catch (e) {
-      // Fallback para seed data embutido
+      // offline / fallback
+    }
+
+    if (localItems === null) {
       if (window.CSC_SEED_DATA && Array.isArray(window.CSC_SEED_DATA)) {
         state.items = window.CSC_SEED_DATA.filter(i => i.status === 'ativo');
+        saveToStorage(window.CSC_SEED_DATA);
       } else {
         state.items = [];
       }
@@ -103,12 +136,17 @@
     }
   }
 
+  let eventsBound = false;
+
   // Inicialização após carga de dados
   function initApp() {
     updateStatistics();
     populateCategoryFilter();
     applyFilters();
-    bindEvents();
+    if (!eventsBound) {
+      bindEvents();
+      eventsBound = true;
+    }
   }
 
   // Atualiza contadores do Hero
@@ -634,6 +672,19 @@
       if (e.key === 'Escape') {
         closeMapsModal();
         closeSuggestModal();
+      }
+    });
+
+    // Sincronização em tempo real entre abas (quando o admin adiciona/exclui registros)
+    window.addEventListener('storage', (e) => {
+      if (!e.key || e.key === STORAGE_KEY) {
+        const updated = getFromStorage();
+        if (updated !== null) {
+          state.items = updated.filter(i => i.status === 'ativo');
+          updateStatistics();
+          populateCategoryFilter();
+          applyFilters();
+        }
       }
     });
   }

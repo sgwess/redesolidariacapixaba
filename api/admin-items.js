@@ -97,6 +97,7 @@ module.exports = async function handler(req, res) {
 
       return res.status(200).json({
         success: true,
+        hasRemoteSheet: Boolean(sheetUrl),
         total: items.length,
         data: items
       });
